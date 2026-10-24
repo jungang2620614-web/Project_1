@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>융합 교과 맞춤형 AI 튜터</title>
+  <!-- Pretendard 웹 폰트 적용 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary-color: #64748b;
+      --secondary-hover: #475569;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --focus-ring: rgba(79, 70, 229, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    /* 메인 카드 컨테이너 (최대 너비 650px) */
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      padding: 32px 24px;
+      margin-top: 10px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* Form 스타일링 */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #334155;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: #fff;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 36px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.99);
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-primary:disabled {
+      background-color: #a5b4fc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-clear {
+      background-color: #f1f5f9;
+      color: var(--secondary-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-clear:hover {
+      background-color: #e2e8f0;
+      color: var(--secondary-hover);
+    }
+
+    /* 로딩 및 상태 안내 */
+    .status-container {
+      display: none;
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 8px;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #166534;
+    }
+
+    .status-container.retry {
+      background-color: #fffbeeb;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0,0,0,0.1);
+      border-left-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 결과 출력 영역 */
+    .result-container {
+      display: none;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 2px dashed var(--border-color);
+    }
+
+    .result-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .result-content {
+      background-color: #fafafa;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 0.98rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #1e293b;
+      line-height: 1.75;
+    }
+
+    /* details / summary 스타일링 */
+    .result-content details {
+      margin-top: 16px;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .result-content summary {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--primary-color);
+      outline: none;
+      user-select: none;
+    }
+
+    .result-content details[open] summary {
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    /* 커스텀 토스트 알림 */
+    .toast {
+      visibility: hidden;
+      min-width: 280px;
+      max-width: 90%;
+      background-color: #1e293b;
+      color: #fff;
+      text-align: center;
+      border-radius: 30px;
+      padding: 12px 24px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+    }
+
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 40px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        padding: 24px 16px;
+      }
+      .header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎓 융합 교과 맞춤형 AI 튜터</h1>
+      <p>교과 개념과 나의 관심사를 결합하여 쉽고 재미있게 공부하세요!</p>
+    </div>
+
+    <form id="tutorForm" onsubmit="return false;">
+      <div class="form-group">
+        <label for="apiKey">Gemini API Key</label>
+        <input type="password" id="apiKey" class="form-control" placeholder="API Key를 입력하세요" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="subject">과목 선택</label>
+        <select id="subject" class="form-control">
+          <option value="물리">물리</option>
+          <option value="지리">지리</option>
+          <option value="정보/AI">정보/AI</option>
+          <option value="경영/경제">경영/경제</option>
+          <option value="기타 교과">기타 교과</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="concept">교과 개념</label>
+        <input type="text" id="concept" class="form-control" placeholder="예: 가속도, 환율, 인공지능 신경망 등" />
+      </div>
+
+      <div class="form-group">
+        <label for="interest">나의 관심사</label>
+        <input type="text" id="interest" class="form-control" placeholder="예: 롤(LoL), 아이돌, 축구, 요리 등" />
+      </div>
+
+      <div class="button-group">
+        <button type="button" id="submitBtn" class="btn btn-primary" onclick="handleExplainRequest()">
+          ✨ 선생님, 설명해 주세요!
+        </button>
+        <button type="button" class="btn btn-clear" onclick="handleClearCache()">
+          🗑️ 이전 답변 및 학습 캐시 초기화
+        </button>
+      </div>
+    </form>
+
+    <!-- 상태 및 로딩 표시 -->
+    <div id="statusContainer" class="status-container">
+      <span class="spinner"></span>
+      <span id="statusText">AI 선생님이 맞춤형 설명을 작성 중입니다...</span>
+    </div>
+
+    <!-- AI 답변 출력 영역 -->
+    <div id="resultContainer" class="result-container">
+      <div class="result-title">📢 맞춤형 학습 설명</div>
+      <div id="resultContent" class="result-content"></div>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 메시지 영역 -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // 오늘 날짜 가져오기 (YYYY-MM-DD)
+    function getTodayKey() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `tutor_usage_${year}-${month}-${day}`;
+    }
+
+    // 커스텀 토스트 알림 표시 함수
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // 일일 질문 횟수 확인 및 증가
+    function checkAndIncrementDailyLimit() {
+      const key = getTodayKey();
+      const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
+
+      if (currentCount >= 5) {
+        showToast("무료 한도 보호를 위해 하루 5회까지만 이용 가능합니다.");
+        return false;
+      }
+
+      localStorage.setItem(key, currentCount + 1);
+      return true;
+    }
+
+    // 지수 백오프 기반 API 호출 함수
+    async function fetchGeminiWithBackoff(apiKey, promptText) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [
+          {
+            parts: [{ text: promptText }]
+          }
+        ]
+      };
+
+      const delays = [2000, 4000, 8000]; // 2초, 4초, 8초 대기
+      const maxRetries = 3;
+
+      const statusContainer = document.getElementById('statusContainer');
+      const statusText = document.getElementById('statusText');
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 0) {
+            statusContainer.classList.add('retry');
+            const waitTimeSec = delays[attempt - 1] / 1000;
+            statusText.textContent = `서버 요청 폭주로 재시도 중입니다... (${attempt}/${maxRetries}회 차, ${waitTimeSec}초 대기 중)`;
+            await new Promise(resolve => setTimeout(resolve, delays[attempt - 1]));
+          }
+
+          statusContainer.style.display = 'block';
+          if (attempt === 0) {
+            statusContainer.classList.remove('retry');
+            statusText.textContent = "AI 선생님이 맞춤형 설명을 작성 중입니다...";
+          }
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          // 503 또는 429 에러 발생 시 백오프 재시도 트리거
+          if (response.status === 503 || response.status === 429) {
+            if (attempt < maxRetries) continue;
+            throw new Error(`서버 응답 오류 (상태 코드: ${response.status})`);
+          }
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const msg = errorData.error?.message || `API 요청 실패 (${response.status})`;
+            throw new Error(msg);
+          }
+
+          const data = await response.json();
+          const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (!responseText) {
+            throw new Error("유효한 응답 결과를 받지 못했습니다.");
+          }
+
+          return responseText;
+
+        } catch (error) {
+          if (attempt === maxRetries) {
+            throw error;
+          }
+        }
+      }
+    }
+
+    // 마크다운 기호 제거 및 sanitize 처리
+    function sanitizeAndFormatResponse(rawText) {
+      // 1. *, # 등 마크다운 강제 기호 제거 (지시사항 준수)
+      let cleanText = rawText.replace(/[\*\#]/g, '');
+
+      // 2. 혹시 인사말이나 서론이 섞였을 경우 예방적인 앞뒤 공백 정리
+      cleanText = cleanText.trim();
+
+      return cleanText;
+    }
+
+    // '선생님, 설명해 주세요!' 버튼 클릭 시 실행
+    async function handleExplainRequest() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const subject = document.getElementById('subject').value;
+      const concept = document.getElementById('concept').value.trim();
+      const interest = document.getElementById('interest').value.trim();
+
+      // 1. 유효성 검사
+      if (!apiKey) {
+        showToast("Gemini API Key를 입력해 주세요.");
+        return;
+      }
+      if (!concept) {
+        showToast("교과 개념을 입력해 주세요.");
+        return;
+      }
+      if (!interest) {
+        showToast("나의 관심사를 입력해 주세요.");
+        return;
+      }
+
+      const cacheKey = `cache_${subject}_${concept}_${interest}`;
+      const cachedData = localStorage.getItem(cacheKey);
+
+      const resultContainer = document.getElementById('resultContainer');
+      const resultContent = document.getElementById('resultContent');
+      const statusContainer = document.getElementById('statusContainer');
+      const submitBtn = document.getElementById('submitBtn');
+
+      // 2. 캐시 데이터가 존재하는 경우 -> 즉시 표시 (일일 한도 차감 안함)
+      if (cachedData) {
+        resultContent.innerHTML = cachedData;
+        resultContainer.style.display = 'block';
+        showToast("⚡ 이전 질문의 캐시된 답변을 불러왔습니다.");
+        return;
+      }
+
+      // 3. 일일 사용 한도 제한 체크
+      if (!checkAndIncrementDailyLimit()) {
+        return;
+      }
+
+      // 4. API 요청 프롬프트 생성
+      const promptText = `너는 고등학교 1~2학년 학생들의 눈높이에 맞춰 어려운 교과 개념을 쉽고 재미있게 가르치는 '${subject}' 과목의 일타 강사야.
+
+학생이 질문한 개념: ${concept}
+학생의 관심사: ${interest}
+
+[중요 지시사항]
+1. 별표(*), 샵(#) 등 마크다운 기호는 절대 사용하지 마. 텍스트 강조도 하지 마.
+2. 오직 일반 텍스트와 <details>, <summary> 태그만 사용해.
+3. 인사말, 서론 생략하고 바로 아래 양식으로 출력해.
+
+[💡 찰떡 비유]
+(관심사 '${interest}'를 활용한 재미있는 비유 설명)
+
+[📚 핵심 원리]
+(개념 '${concept}'의 교과서적 원리 설명)
+
+[🎯 확인 퀴즈]
+(객관식 4지 선다형 1문제)
+
+<details>
+<summary>👉 정답 및 해설 확인하기 (클릭)</summary>
+정답: O번
+해설: (왜 그 번호가 정답인지 명확하게 설명)
+</details>`;
+
+      // UI 상태 변경 (로딩 시작)
+      submitBtn.disabled = true;
+      resultContainer.style.display = 'none';
+
+      try {
+        const rawResponse = await fetchGeminiWithBackoff(apiKey, promptText);
+        const formattedResponse = sanitizeAndFormatResponse(rawResponse);
+
+        // 결과 화면 표시 및 LocalStorage 캐싱 저장
+        resultContent.innerHTML = formattedResponse;
+        resultContainer.style.display = 'block';
+        localStorage.setItem(cacheKey, formattedResponse);
+
+        showToast("맞춤형 학습 내용이 성공적으로 작성되었습니다!");
+      } catch (err) {
+        showToast(`오류 발생: ${err.message || '요청 처리 실패'}`);
+      } finally {
+        statusContainer.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    }
+
+    // '이전 답변 및 학습 캐시 초기화' 버튼 클릭 시 실행
+    function handleClearCache() {
+      localStorage.clear();
+
+      // 화면 요소 초기화
+      document.getElementById('resultContainer').style.display = 'none';
+      document.getElementById('resultContent').innerHTML = '';
+      document.getElementById('statusContainer').style.display = 'none';
+
+      showToast("모든 학습 캐시 및 일일 이용 데이터가 초기화되었습니다.");
+    }
+  </script>
+</body>
+</html>
